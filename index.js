@@ -2,6 +2,8 @@ tela.style.height = "100%";
 tela.style.width = "100%";
 tela.style.backgroundColor = "green";
 
+var pontuacao = 0;
+
 const player = {
     x:0,
     y:0,
@@ -24,8 +26,8 @@ const projectile = {
     },
     move: function(){
         this.x += this.speed;
-        console.log(this.x);
         this.isMoving = true;
+
         if(this.x > 200){
             this.alive = false;
             this.isMoving = false;
@@ -36,9 +38,28 @@ const projectile = {
             if(this.y >= enemy.y && this.y <= enemy.y + enemy.height){
                 enemy.alive = false;
                 console.log("morreu");
+                atualizaPontuacao();
             }
         }
     }
+}
+
+function atualizaPontuacao(){
+    contador.innerText = ++pontuacao;
+    playExplodeSound();
+}
+
+function playSound(caminhoAudio, tempo){
+    let audio = new Audio(caminhoAudio);
+    audio.loop = true;
+    audio.play();
+    setTimeout(() => {
+        audio.pause();
+    }, tempo * 1000);
+}
+
+function playExplodeSound(){
+    playSound("explode.mp3", 1);
 }
 
 const enemy = {
@@ -47,11 +68,16 @@ const enemy = {
     height: 10,
     width: 10 ,
     alive: true,
+    resetaInimigo:function(){
+        this.x = 180;
+        this.y = 20;
+        this.alive = true;
+    }
 }
 
 const context = tela.getContext("2d");
 
-function atualizaTela(keyCode){
+function atualizaTela(){
     renderPlayer();
     if(enemy.alive){
 
@@ -72,6 +98,10 @@ function moveEnemy(){
         }else{
             enemy.y -= 120;
         }
+    }
+
+    if(enemy.alive == false){
+        enemy.resetaInimigo();
     }
 }
 
@@ -96,7 +126,7 @@ function jogar(){
     window.addEventListener("keypress",function (e){
         const keyCode = e.key;
         
-        switch(e.key){
+        switch(keyCode){
             case "a":
                 player.x -= player.speed;
                 break;
@@ -113,23 +143,21 @@ function jogar(){
                 shoot();
                 break;
         }
-        atualizaTela(keyCode);
+        renderPlayer();
     })
 }
 const canvasWidth = 200;
 
 function shoot(){
     projectile.updateBulletStartPosition();
-    renderProjectile();
     projectile.move();
+    playSound("blaster.mp3",1);
 }
 function renderProjectile() {
-    //context.clearRect(0, 0, window.innerWidth, window.innerHeight);
     context.fillStyle = "red";
     context.fillRect(projectile.x, projectile.y, projectile.width, projectile.height);
     context.fill();
 }
-var sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay))
 
 setInterval(() => {
     jogar();
